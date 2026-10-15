@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Last Stand</title>
+<meta name="description" content="Top-down zombie survival and team deathmatch shooter. Solo, two players on one screen, or online.">
+<meta name="theme-color" content="#0b0d0c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Last Stand">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="preload" href="fonts/blackops.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+/*@CSS*/
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<section id="scr-title" class="screen hidden">
+  <div class="topbar"><div id="rank-chip" class="rankchip"></div><div style="flex:1"></div><button class="btn sm ghost" data-act="help">HOW TO PLAY</button></div>
+  <div class="title-wrap">
+    <div class="title-left">
+      <div class="brand"><div id="emblem" class="emblem"></div><h1 class="logo">LAST<br>STAND<small>SURVIVE · SQUAD UP · DOMINATE</small></h1></div>
+      <div class="menu">
+        <button class="btn big red" data-act="zombies"><span>ZOMBIES</span><em>Endless rounds · solo or with a friend</em></button>
+        <button class="btn big steel" data-act="tdm"><span>TEAM DEATHMATCH</span><em>4 vs 4 · bots fill the gaps</em></button>
+        <div class="row"><button class="btn" data-act="armory">ARMORY</button><button class="btn ghost" data-act="settings">SETTINGS</button></div>
+      </div>
+      <div class="best" id="title-best"></div>
+    </div>
+  </div>
+</section>
+
+<section id="scr-setup" class="screen hidden">
+  <div class="topbar"><button class="back" data-act="back">‹</button><h2 id="setup-h">ZOMBIES</h2></div>
+  <div class="scroll setup">
+    <div class="opts" id="setup-opts"></div>
+    <div class="maps"><label>MAP</label><div class="mapgrid" id="setup-maps"></div></div>
+  </div>
+  <div class="footer"><div class="desc" id="setup-desc"></div><button class="btn red" id="setup-go">DEPLOY ›</button></div>
+</section>
+
+<section id="scr-armory" class="screen hidden">
+  <div class="topbar"><button class="back" data-act="back">‹</button><h2>ARMORY</h2></div>
+  <div class="scroll" id="arm-body"></div>
+</section>
+
+<section id="scr-results" class="screen hidden">
+  <div class="scroll results" id="res-body"></div>
+  <div class="footer"><div class="desc"></div><button class="btn ghost" data-act="menu">MENU</button><button class="btn red" data-act="again">PLAY AGAIN</button></div>
+</section>
+
+<div id="loading" class="hidden"><div class="lt">DEPLOYING…</div><div class="lb"><i></i></div><div class="tip"></div></div>
+<div id="modal" class="hidden"><div class="mbox"></div></div>
+<div id="install" class="hidden"></div>
+<div id="upd" class="hidden"><span>New update available</span><button>UPDATE</button></div>
+
+<script>
+/*@JS*/
+</script>
+</body>
+</html>

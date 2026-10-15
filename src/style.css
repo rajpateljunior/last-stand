@@ -1,0 +1,166 @@
+@font-face { font-family: "Black Ops One"; src: url("fonts/blackops.woff2") format("woff2"); font-display: block; }
+@font-face { font-family: "Chakra Petch"; font-weight: 500; src: url("fonts/chakra-500.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Chakra Petch"; font-weight: 700; src: url("fonts/chakra-700.woff2") format("woff2"); font-display: swap; }
+
+:root {
+  --ink: #0b0d0c; --panel: rgba(16, 19, 17, .9); --line: rgba(241, 236, 224, .14);
+  --red: #c8231b; --red2: #ff4a3a; --steel: #3d6b8a; --gold: #ffd23f; --olive: #5d6b3e; --bone: #f1ece0; --mute: #9a9c8e;
+  --sl: env(safe-area-inset-left, 0px); --sr: env(safe-area-inset-right, 0px); --st: env(safe-area-inset-top, 0px); --sb: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: var(--ink); color: var(--bone); font-family: "Chakra Petch", system-ui, sans-serif; overscroll-behavior: none; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+canvas#game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; background: #000; }
+.hidden { display: none !important; }
+button { touch-action: manipulation; font-family: inherit; }
+
+/* ---------- screens ---------- */
+.screen { position: fixed; inset: 0; display: flex; flex-direction: column; padding: calc(10px + var(--st)) calc(14px + var(--sr)) calc(10px + var(--sb)) calc(14px + var(--sl));
+  background: linear-gradient(90deg, rgba(5,6,5,.94), rgba(5,6,5,.8) 55%, rgba(5,6,5,.55)); }
+#scr-title { background: linear-gradient(90deg, rgba(4,5,4,.92) 0%, rgba(4,5,4,.7) 42%, rgba(4,5,4,.05) 78%); }
+.screen > * { position: relative; }
+.topbar { display: flex; align-items: center; gap: 10px; min-height: 44px; flex: none; }
+.topbar h2 { margin: 0; flex: 1; font: 400 clamp(22px, 4.6vh, 34px)/1 "Black Ops One", Impact, sans-serif; letter-spacing: 1px; text-shadow: 2px 2px 0 #000; }
+.back { width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255,255,255,.06); color: var(--bone); font: 400 28px "Black Ops One", sans-serif; line-height: 1; }
+.scroll { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; padding: 6px 2px 10px; }
+.footer { flex: none; display: flex; gap: 10px; align-items: center; padding-top: 8px; border-top: 1px solid var(--line); }
+.footer .desc { flex: 1; font-size: 12px; color: var(--mute); line-height: 1.35; }
+
+.btn { --c: #2b2f2a; position: relative; border: 0; padding: 0 22px; height: 48px; color: var(--bone); font: 400 20px/1 "Black Ops One", Impact, sans-serif; letter-spacing: 1px; cursor: pointer;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c) 80%, #fff 8%), var(--c) 60%, color-mix(in srgb, var(--c) 75%, #000)); clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  text-shadow: 1px 1px 0 rgba(0,0,0,.6); transition: transform .08s, filter .1s; }
+.btn:active { transform: scale(.96); filter: brightness(1.15); }
+.btn.sm { height: 38px; font-size: 16px; padding: 0 14px; }
+.btn.red { --c: #8c1a14; } .btn.steel { --c: #2c4d63; } .btn.ghost { --c: #1e221e; box-shadow: inset 0 0 0 1px var(--line); }
+.btn.danger { color: #ff8a7a; }
+.btn.big { height: auto; padding: 12px 22px 11px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left; }
+.btn.big span { font-size: clamp(22px, 4.8vh, 30px); }
+.btn.big em { font: 500 12px "Chakra Petch", sans-serif; font-style: normal; letter-spacing: .3px; color: rgba(241,236,224,.75); text-shadow: none; }
+.btn[disabled] { filter: grayscale(.8) brightness(.6); }
+
+/* ---------- title ---------- */
+.title-wrap { flex: 1; display: flex; align-items: center; min-height: 0; }
+.title-left { display: flex; flex-direction: column; gap: clamp(8px, 2.2vh, 18px); max-width: min(460px, 52vw); }
+.brand { display: flex; align-items: center; gap: 12px; }
+.emblem { width: clamp(64px, 17vh, 120px); flex: none; filter: drop-shadow(0 4px 10px rgba(0,0,0,.8)); }
+.emblem svg { width: 100%; height: auto; display: block; }
+.logo { margin: 0; font: 400 clamp(40px, 12vh, 86px)/.86 "Black Ops One", Impact, sans-serif; letter-spacing: 2px; color: var(--bone);
+  text-shadow: 3px 3px 0 #000, 0 0 24px rgba(200,35,27,.35); }
+.logo small { display: block; margin-top: 8px; font: 700 clamp(9px, 1.9vh, 13px) "Chakra Petch", sans-serif; letter-spacing: 3px; color: var(--red2); text-shadow: none; }
+.menu { display: flex; flex-direction: column; gap: 8px; }
+.menu .btn.big { width: min(400px, 46vw); }
+.menu .row { display: flex; gap: 8px; }
+.menu .row .btn { flex: 1; }
+.best { font: 700 12px "Chakra Petch"; letter-spacing: 1.5px; color: var(--gold); min-height: 14px; }
+.rankchip { display: flex; align-items: center; gap: 8px; padding: 5px 10px 5px 5px; border-radius: 8px; background: rgba(0,0,0,.55); border: 1px solid var(--line); }
+.rankchip .rk { width: 30px; height: 30px; display: grid; place-items: center; font: 400 16px "Black Ops One"; background: linear-gradient(180deg, #c9a34a, #7a5a1a); color: #111; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+.rankchip .rn { font: 700 11px "Chakra Petch"; letter-spacing: 1px; }
+.rb { width: 90px; height: 5px; background: rgba(255,255,255,.12); border-radius: 3px; overflow: hidden; }
+.rb i { display: block; height: 100%; background: linear-gradient(90deg, #c9a34a, #ffd23f); }
+.rb.big { width: 100%; height: 8px; }
+
+/* ---------- setup ---------- */
+.setup { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; align-content: start; }
+.opts .row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+.opts label, .maps > label { width: 86px; flex: none; font: 700 11px "Chakra Petch"; letter-spacing: 1.5px; color: var(--mute); }
+.maps > label { display: block; width: auto; margin-bottom: 6px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: rgba(0,0,0,.35); flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; color: var(--mute); font: 700 12px "Chakra Petch"; letter-spacing: .8px; padding: 9px 11px; min-height: 38px; }
+.seg button.on { background: var(--red); color: #fff; }
+.opchips { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
+.opc { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 62px; padding: 4px 2px 5px; border-radius: 8px; border: 1px solid var(--line); background: rgba(0,0,0,.35); color: var(--bone); font: 700 9px "Chakra Petch"; letter-spacing: .5px; }
+.opc.on { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(255,210,63,.25); }
+.opc.lock { opacity: .45; }
+.opface img { width: 38px; height: 38px; display: block; }
+.lo { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+.gl { display: flex; gap: 5px; flex-wrap: wrap; }
+.gun { border: 1px solid var(--line); background: rgba(0,0,0,.35); color: var(--bone); font: 700 11px "Chakra Petch"; padding: 7px 9px; border-radius: 6px; min-height: 34px; }
+.gun.on { background: var(--steel); border-color: #7ab0d0; }
+.gun.lock { opacity: .45; }
+.mapgrid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.mapcard { display: grid; grid-template-columns: 112px 1fr; grid-template-rows: auto auto auto; column-gap: 10px; text-align: left; padding: 6px; border-radius: 10px; border: 2px solid var(--line); background: var(--panel); color: var(--bone); }
+.mapcard.sel { border-color: var(--gold); }
+.mthumb { grid-row: 1 / 4; border-radius: 6px; overflow: hidden; }
+.mthumb img { width: 112px; height: 70px; display: block; image-rendering: pixelated; }
+.mapcard b { font: 400 17px "Black Ops One"; letter-spacing: 1px; align-self: end; }
+.mapcard small { font-size: 11px; color: var(--mute); }
+.mapcard em { font: 700 10px "Chakra Petch"; font-style: normal; color: var(--gold); letter-spacing: 1px; }
+
+/* ---------- armory ---------- */
+#arm-body h4 { margin: 10px 0 6px; font: 400 16px "Black Ops One"; letter-spacing: 1px; color: var(--red2); }
+.agrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.acard { padding: 8px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); display: flex; flex-direction: column; gap: 3px; }
+.acard.sel { border-color: var(--gold); }
+.acard.lock { opacity: .5; }
+.acard b { font: 400 14px "Black Ops One"; letter-spacing: .5px; }
+.acard small { font-size: 10.5px; color: var(--mute); line-height: 1.3; }
+.acard .opface img { width: 48px; height: 48px; }
+.st { display: grid; grid-template-columns: 62px 1fr; align-items: center; gap: 6px; font: 700 9px "Chakra Petch"; color: var(--mute); }
+.st i { height: 5px; background: rgba(255,255,255,.1); border-radius: 3px; overflow: hidden; }
+.st i b { display: block; height: 100%; background: var(--bone); }
+.rec { font-size: 12px; line-height: 1.6; color: var(--bone); }
+
+/* ---------- results ---------- */
+.results { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.bigline { font: 400 clamp(30px, 9vh, 58px)/1 "Black Ops One"; letter-spacing: 2px; color: var(--red2); text-shadow: 3px 3px 0 #000; margin-top: 4px; }
+.bigline.good { color: #6fd06a; } .bigline.bad { color: var(--red2); }
+.results .sub { font-size: 13px; color: var(--bone); letter-spacing: .5px; }
+.results .new { color: var(--gold); font-weight: 700; }
+.sb { border-collapse: collapse; font-size: 12px; min-width: 280px; background: rgba(0,0,0,.4); border-radius: 8px; overflow: hidden; }
+.sb th { font: 700 10px "Chakra Petch"; letter-spacing: 1px; color: var(--mute); padding: 6px 8px; text-align: right; }
+.sb th:first-child, .sb td:first-child { text-align: left; }
+.sb td { padding: 5px 8px; text-align: right; border-top: 1px solid var(--line); }
+.sb tr.me td { color: var(--gold); font-weight: 700; }
+.sb.t0 th:first-child { color: #6fb0ff; } .sb.t1 th:first-child { color: #ff7a6a; }
+.two { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.xp { width: min(420px, 90%); margin-top: 6px; }
+.xpl { display: flex; justify-content: space-between; font: 700 12px "Chakra Petch"; margin-bottom: 4px; }
+.xpl span:first-child { color: var(--gold); }
+.rankup { margin-top: 6px; font: 700 12px "Chakra Petch"; color: var(--gold); letter-spacing: .5px; }
+
+/* ---------- loading / modal / toasts ---------- */
+#loading { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: #060706; z-index: 20; }
+#loading .lt { font: 400 28px "Black Ops One"; letter-spacing: 3px; }
+#loading .lb { width: 200px; height: 4px; background: rgba(255,255,255,.1); overflow: hidden; }
+#loading .lb i { display: block; width: 40%; height: 100%; background: var(--red); animation: load 1s linear infinite; }
+@keyframes load { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+#loading .tip { font-size: 12px; color: var(--mute); max-width: 80vw; text-align: center; }
+#modal { position: fixed; inset: 0; z-index: 30; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.6); padding: calc(10px + var(--st)) calc(12px + var(--sr)) calc(10px + var(--sb)) calc(12px + var(--sl)); }
+.mbox { width: min(420px, 100%); max-height: 100%; overflow-y: auto; touch-action: pan-y; background: linear-gradient(180deg, #171b18, #0e100e); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; box-shadow: 0 20px 60px rgba(0,0,0,.6); }
+.mbox.wide { width: min(620px, 100%); }
+.mbox h3 { margin: 0 0 8px; font: 400 24px "Black Ops One"; letter-spacing: 1px; color: var(--bone); }
+.mbox p { font-size: 13px; line-height: 1.45; margin: 6px 0; }
+.mbox .mute, .mute { color: var(--mute); font-size: 12px; }
+.mbox textarea { width: 100%; height: 74px; background: #050605; color: var(--gold); border: 1px solid var(--line); border-radius: 6px; font: 11px/1.3 monospace; padding: 6px; resize: none; touch-action: auto; -webkit-user-select: text; user-select: text; }
+.acts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.acts.col { flex-direction: column; } .acts.col .btn { width: 100%; }
+.srow { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 8px 0; }
+.srow > span { font: 700 12px "Chakra Petch"; letter-spacing: 1px; color: var(--mute); }
+.help p { font-size: 12.5px; }
+.codebox { font: 400 46px "Black Ops One"; letter-spacing: 10px; text-align: center; color: var(--gold); margin: 8px 0; }
+.codein { width: 100%; font: 400 34px "Black Ops One"; letter-spacing: 10px; text-align: center; background: #050605; color: var(--gold); border: 1px solid var(--line); border-radius: 8px; padding: 8px; text-transform: uppercase; -webkit-user-select: text; user-select: text; touch-action: auto; }
+.toast { position: fixed; left: 50%; bottom: calc(24px + var(--sb)); transform: translateX(-50%); background: rgba(0,0,0,.85); border: 1px solid var(--line); padding: 8px 14px; border-radius: 8px; font: 700 12px "Chakra Petch"; letter-spacing: 1px; z-index: 40; transition: opacity .5s; }
+.toast.out { opacity: 0; }
+#install { position: fixed; left: 50%; top: calc(8px + var(--st)); transform: translateX(-50%); z-index: 25; display: flex; gap: 10px; align-items: center; background: rgba(0,0,0,.88); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; font-size: 12px; max-width: 92vw; }
+#install button, #upd button { border: 0; background: var(--red); color: #fff; font: 700 12px "Chakra Petch"; padding: 7px 12px; border-radius: 6px; }
+#upd { position: fixed; left: 50%; bottom: calc(10px + var(--sb)); transform: translateX(-50%); z-index: 26; display: flex; gap: 12px; align-items: center; background: #13361c; border: 1px solid #3a8a4a; border-radius: 10px; padding: 8px 10px 8px 14px; font: 700 13px "Chakra Petch"; box-shadow: 0 8px 30px rgba(0,0,0,.6); }
+#upd button { background: #2bd96a; color: #06200f; }
+.wnbox { width: min(640px, 100%); }
+.wn { margin: 0; padding-left: 18px; font-size: 12.5px; line-height: 1.45; }
+.wnfoot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; font-size: 11px; color: var(--mute); }
+
+/* ---------- portrait / small screens ---------- */
+@media (orientation: portrait) {
+  #scr-title { background: linear-gradient(180deg, rgba(4,5,4,.6) 0%, rgba(4,5,4,.85) 45%, rgba(4,5,4,.92) 100%); }
+  .title-wrap { align-items: flex-end; padding-bottom: 6vh; }
+  .title-left { max-width: 100%; width: 100%; }
+  .menu .btn.big { width: 100%; }
+  .setup { grid-template-columns: 1fr; }
+  .opts label { width: 100%; }
+}
+@media (max-height: 430px) and (orientation: landscape) {
+  .btn.big { padding: 8px 16px 7px; } .btn.big em { font-size: 11px; }
+  .menu { gap: 6px; } .btn { height: 42px; }
+  .logo small { margin-top: 4px; }
+  .mapcard { grid-template-columns: 96px 1fr; } .mthumb img { width: 96px; height: 60px; }
+  .opts .row { margin-bottom: 6px; }
+}
