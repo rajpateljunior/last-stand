@@ -9,8 +9,6 @@ function initRender(G) {
   R.parts = []; R.corpses = []; R.tracers = []; R.flashes = []; R.booms = []; R.arcs = []; R.pops = []; R.toasts = []; R.feed = []; R.announce = null; R.lightning = 0; R.hit = [0, 0]; R.kill = [0, 0];
   R.dmgDir = [[], []]; R.hurtFlash = [0, 0]; R.cams = [null, null]; R.boxSpin = 0; R.powerT = 0; R.rainT = 0;
   ZSHIRT = ZCLOTH[m.id] || ZCLOTH.outpost;
-  R.ground = bakeGround(m);
-  R.gctx = R.ground.getContext("2d");
   // wall look per tile: buildings get a style from their room, the outer walls their own
   R.wallStyle = new Array(m.N);
   for (let y = 0; y < m.H; y++) for (let x = 0; x < m.W; x++) {
@@ -32,6 +30,10 @@ function initRender(G) {
   m.vehicles.forEach((v, k) => { for (const [x, y] of v.tiles) R.vehAt[y * m.W + x] = k; });
   R.lowAt = new Int16Array(m.N).fill(-1);
   m.lows.forEach((v, k) => { if (v.tiles) for (const [x, y] of v.tiles) R.lowAt[y * m.W + x] = k; });
+  // ground + everything that never changes (walls' faces, crates, cars, fences, sandbags, tree trunks) baked once
+  R.ground = bakeGround(m);
+  R.gctx = R.ground.getContext("2d");
+  drawPropsBase(R.gctx, G, 0, 0, m.W - 1, m.H - 1, 0, true);
 }
 
 function wallPattern(style, col) {
@@ -103,6 +105,7 @@ function updateCamera(G, V, dt) {
   for (const p of ps) { tx += p.x + Math.cos(p.ang) * (p.alive && !p.down ? 55 : 0); ty += p.y + Math.sin(p.ang) * (p.alive && !p.down ? 40 : 0); }
   tx /= ps.length; ty /= ps.length;
   let zoom = viewZoom(V.w, V.h);
+  if (V.demo) { zoom *= 1.05; if (V.w > V.h) tx -= (V.w * 0.2) / zoom; else ty -= (V.h * 0.22) / zoom; }
   if (ps.length > 1) {
     const dx = Math.abs(ps[0].x - ps[1].x) + 260, dy = Math.abs(ps[0].y - ps[1].y) + 220;
     zoom = Math.min(zoom, V.w / dx, V.h / dy);
@@ -148,7 +151,7 @@ function drawView(ctx, G, V, t, dt) {
   V.wr = [wx0, wy0, wx1, wy1];
   // ground
   const sx = clamp(wx0, 0, m.pw), sy = clamp(wy0, 0, m.ph), sw = clamp(wx1, 0, m.pw) - sx, shh = clamp(wy1, 0, m.ph) - sy;
-  if (sw > 0 && shh > 0) ctx.drawImage(R.ground, sx, sy, sw, shh, sx, sy, sw, shh);
+  if (sw > 0 && shh > 0) ctx.drawImage(R.ground, sx * GS, sy * GS, sw * GS, shh * GS, sx, sy, sw, shh);
   const tx0 = Math.max(0, Math.floor(wx0 / TILE)), ty0 = Math.max(0, Math.floor(wy0 / TILE)), tx1 = Math.min(m.W - 1, Math.floor(wx1 / TILE)), ty1 = Math.min(m.H - 1, Math.floor(wy1 / TILE) + 1);
   drawPropsBase(ctx, G, tx0, ty0, tx1, ty1, t);
   // things on the floor
@@ -196,15 +199,19 @@ function drawView(ctx, G, V, t, dt) {
 function playerColor(G, a) { return a.pidx === 1 || (a.netId === 1) ? "#ffb12a" : "#4ad4ff"; }
 
 /* ---------------- props: base pass (under actors) ---------------- */
-function drawPropsBase(g, G, tx0, ty0, tx1, ty1, t) {
+/* staticPass = baked once into the ground image; otherwise only the things that change (doors, windows, barrels,
+   box, perks, Forge, power switch) are drawn each frame. */
+function drawPropsBase(g, G, tx0, ty0, tx1, ty1, t, staticPass) {
   const m = G.map, T = TILE, W = m.W;
   const drawnVeh = new Set(), drawnLow = new Set();
   for (let y = ty0; y <= ty1; y++) for (let x = tx0; x <= tx1; x++) {
     const i = y * W + x, tl = m.tile[i], x0 = x * T, y0 = y * T, c = m.ch[i];
+    const dyn = tl === T_WINDOW || tl === T_DOOR || tl === T_BARREL || (tl === T_HIGH && (c === "P" || c === "B" || c === "F" || c === "S"));
+    if (dyn === !!staticPass) continue;
     switch (tl) {
       case T_WALL: {
-        // the front face shows if the tile below isn't a wall
-        if (y + 1 < m.H && m.tile[i + W] !== T_WALL && m.tile[i + W] !== T_WINDOW && !(m.tile[i + W] === T_DOOR && !doorOpen(m, i + W))) {
+        // the front face shows if the tile below isn't a wall (a closed door covers it with its own block)
+        if (y + 1 < m.H && m.tile[i + W] !== T_WALL && m.tile[i + W] !== T_WINDOW) {
           const st = R.wallStyle[i] || m.theme.perim;
           g.fillStyle = wallPattern(st[0], shade(st[1], -0.3)); g.fillRect(x0, y0 + T - WH, T, WH);
           g.fillStyle = "rgba(0,0,0,.35)"; g.fillRect(x0, y0 + T - 2, T, 2);
@@ -231,7 +238,7 @@ function drawPropsBase(g, G, tx0, ty0, tx1, ty1, t) {
       case T_TREE: g.fillStyle = "#3a2a1c"; g.beginPath(); g.arc(x0 + 20, y0 + 22, 7, 0, TAU); g.fill(); break;
       case T_BARREL: { const b = m.barrels[m.barrelAt[i]]; g.drawImage(barrelSprite(!b.alive), x0 + 4, y0 + 2, 32, 32); break; }
     }
-    if (c === "L") { g.fillStyle = "#1a1a1a"; g.beginPath(); g.arc(x0 + 20, y0 + 20, 4, 0, TAU); g.fill(); }
+    if (c === "L" && staticPass) { g.fillStyle = "#1a1a1a"; g.beginPath(); g.arc(x0 + 20, y0 + 20, 4, 0, TAU); g.fill(); }
   }
 }
 
@@ -323,6 +330,10 @@ function drawWindowBase(g, G, i, x0, y0) {
 function drawDoorBase(g, G, i, x0, y0, t) {
   const m = G.map, d = m.doors[m.obj[i]];
   if (d.style === "debris") {
+    g.drawImage(debrisSprite(i), x0, y0, 40, 40);
+    return;
+  }
+  if (false) {
     const R0 = rng(i * 13);
     g.fillStyle = "#2c2824"; g.fillRect(x0 + 2, y0 + 4, 36, 34);
     for (let k = 0; k < 7; k++) {
@@ -347,6 +358,22 @@ function drawDoorBase(g, G, i, x0, y0, t) {
     g.fillStyle = "#ffcc00"; for (let k = 0; k < 5; k++) { g.save(); g.beginPath(); g.rect(x0 + 3, y0 + 26, 34, 6); g.clip(); g.translate(x0 + k * 10, y0 + 26); g.rotate(0.6); g.fillRect(0, -2, 5, 14); g.restore(); }
     g.fillStyle = "#222"; g.fillRect(x0 + 18, y0 - WH + 12, 4, 10);
   }
+}
+
+function debrisSprite(i) {
+  return spr("debris" + i, 40, 40, (g) => {
+    const R0 = rng(i * 13);
+    g.fillStyle = "#2c2824"; g.fillRect(2, 4, 36, 34);
+    for (let k = 0; k < 7; k++) {
+      g.save(); g.translate(6 + R0() * 28, 6 + R0() * 28); g.rotate(R0() * 3);
+      const kk = R0();
+      g.fillStyle = kk < 0.35 ? "#6b4c2a" : kk < 0.6 ? "#555a5e" : kk < 0.8 ? "#1a1a1a" : "#7a2a22";
+      if (kk >= 0.6 && kk < 0.8) { g.beginPath(); g.arc(0, 0, 7, 0, TAU); g.fill(); g.fillStyle = "#333"; g.beginPath(); g.arc(0, 0, 3, 0, TAU); g.fill(); }
+      else g.fillRect(-10, -3, 20, 6);
+      g.restore();
+    }
+    g.fillStyle = "#ffcc00"; g.fillRect(6, 16, 28, 4); g.fillStyle = "#111"; for (let k = 0; k < 4; k++) g.fillRect(8 + k * 7, 16, 3, 4);
+  });
 }
 
 function drawBoxSpot(g, G, x, y, t) {
@@ -629,9 +656,9 @@ function drawGlow(g, G, V, t) {
     if (z.x < V.wr[0] || z.x > V.wr[2] || z.y < V.wr[1] || z.y > V.wr[3]) continue;
     const col = z.ztype === "hound" ? "255,90,30" : z.ztype === "brute" ? "255,40,40" : "255,200,60";
     for (let k = 0; k < 4; k += 2) {
-      const grd = g.createRadialGradient(z.eyes[k], z.eyes[k + 1], 0, z.eyes[k], z.eyes[k + 1], 5);
-      grd.addColorStop(0, `rgba(${col},.95)`); grd.addColorStop(1, `rgba(${col},0)`);
-      g.fillStyle = grd; g.beginPath(); g.arc(z.eyes[k], z.eyes[k + 1], 5, 0, TAU); g.fill();
+      const grd = g.createRadialGradient(z.eyes[k], z.eyes[k + 1], 0, z.eyes[k], z.eyes[k + 1], 3.2);
+      grd.addColorStop(0, `rgba(${col},.9)`); grd.addColorStop(0.5, `rgba(${col},.35)`); grd.addColorStop(1, `rgba(${col},0)`);
+      g.fillStyle = grd; g.beginPath(); g.arc(z.eyes[k], z.eyes[k + 1], 3.2, 0, TAU); g.fill();
     }
   }
   // perk machines + forge + box beam

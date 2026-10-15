@@ -74,6 +74,7 @@ function frame(tms) {
     perf.acc = 0; perf.n = 0;
   }
   const G = App.match;
+  canvas.style.cursor = G && !IS_TOUCH && Input.mouse.on ? "none" : "";
   if (G) {
     const locals = Input.me || [];
     const guest = G.net && G.net.role === "guest", host = G.net && G.net.role === "host";

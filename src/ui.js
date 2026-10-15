@@ -204,6 +204,7 @@ function setupViews(G) {
   if (G.cfg.split && locals.length > 1) App.views = [{ x0: 0, y0: 0, w: CW / 2, h: CH, players: [locals[0]] }, { x0: CW / 2, y0: 0, w: CW / 2, h: CH, players: [locals[1]] }];
   else App.views = [{ x0: 0, y0: 0, w: CW, h: CH, players: locals }];
   Input.me = locals;
+  Input.view0 = App.views[0];
   Input.n = locals.length;
   G.leashLen = 620;
 }
@@ -376,7 +377,7 @@ function startDemo() {
   G.z.power = true;
   initRender(G);
   App.demo = G;
-  App.demoViews = [{ x0: 0, y0: 0, w: CW, h: CH, players: [bot] }];
+  App.demoViews = [{ x0: 0, y0: 0, w: CW, h: CH, players: [bot], demo: true }];
 }
 function stopDemo() { App.demo = null; }
 

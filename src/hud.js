@@ -176,7 +176,11 @@ function drawViewHUD(ctx, G, V, t) {
     const sp = 5 + curDef(me).spread * 60 + me.spreadAdd * 80;
     ctx.beginPath(); ctx.moveTo(mx - sp - 6, my); ctx.lineTo(mx - sp, my); ctx.moveTo(mx + sp, my); ctx.lineTo(mx + sp + 6, my); ctx.moveTo(mx, my - sp - 6); ctx.lineTo(mx, my - sp); ctx.moveTo(mx, my + sp); ctx.lineTo(mx, my + sp + 6); ctx.stroke();
   }
-  if (G.mode === "tdm") { drawMinimap(ctx, G, V, me, Rr, T + (SAFE.t ? 0 : 0), t); drawFeed(ctx, G, V, Rr, t); }
+  if (G.mode === "tdm") {
+    const leftSide = V.x0 === 0 && V.w < CW - 1;
+    drawMinimap(ctx, G, V, me, leftSide ? L + clamp(V.w * 0.2, 100, 168) : Rr, T, t, leftSide);
+    drawFeed(ctx, G, V, leftSide ? L + 230 : Rr, t, leftSide);
+  }
 }
 
 function drawWeaponPanel(ctx, G, V, p, k, t) {
@@ -185,8 +189,10 @@ function drawWeaponPanel(ctx, G, V, p, k, t) {
   const slot = curSlot(p), d = wdef(slot);
   const two = V.players.length > 1;
   const w = two ? 150 : 190, h = 46;
-  const cx = two ? V.x0 + V.w * (k ? 0.75 : 0.25) : V.x0 + V.w / 2;
-  const y = V.y0 + V.h - h - 8 - SAFE.b;
+  let cx = two ? V.x0 + V.w * (k ? 0.75 : 0.25) : V.x0 + V.w / 2;
+  let y = V.y0 + V.h - h - 8 - SAFE.b;
+  // narrow screens (phone upright, split screen): the thumbs need the bottom, so the gun panel goes up top
+  if (IS_TOUCH && !two && V.w < 600) { cx = V.x0 + V.w - w / 2 - 10 - (V.x0 + V.w >= CW - 1 ? SAFE.r : 0); y = V.y0 + 10 + SAFE.t + (V.x0 + V.w >= CW - 1 ? 34 : 0) + (G.mode === "tdm" ? (V.mmBottom || 120) - SAFE.t : 0); }
   const x = cx - w / 2;
   p.hudBox = { x, y, w, h };       // tap the panel to swap weapons
   hudPanel(ctx, x, y, w, h, 0.6);
@@ -237,10 +243,10 @@ function minimapCanvas(G) {
   }
   G._mini = c; return c;
 }
-function drawMinimap(ctx, G, V, me, right, top, t) {
+function drawMinimap(ctx, G, V, me, right, top, t, leftSide) {
   const m = G.map, mc = minimapCanvas(G);
   const w = clamp(V.w * 0.2, 100, 168), h = w * (m.H / m.W);
-  const x = right - w - (V.x0 + V.w >= CW - 1 && IS_TOUCH ? 34 : 0), y = top;
+  const x = right - w - (!leftSide && V.x0 + V.w >= CW - 1 && IS_TOUCH ? 34 : 0), y = top;
   ctx.save(); ctx.globalAlpha = 0.9; ctx.drawImage(mc, x, y, w, h); ctx.restore();
   ctx.strokeStyle = "rgba(241,236,224,.35)"; ctx.lineWidth = 1; ctx.strokeRect(x, y, w, h);
   const sx = w / m.pw, sy = h / m.ph;
@@ -257,7 +263,7 @@ function drawMinimap(ctx, G, V, me, right, top, t) {
   if (G.t.recon[me.team] > 0) { ctx.font = `700 9px ${FONT_UI}`; ctx.fillStyle = "#7affb4"; ctx.textAlign = "right"; ctx.fillText("RECON " + Math.ceil(G.t.recon[me.team]) + "s", x + w, y + h + 11); }
   V.mmBottom = y + h + 14;
 }
-function drawFeed(ctx, G, V, right, t) {
+function drawFeed(ctx, G, V, right, t, leftSide) {
   let y = (V.mmBottom || 100) + 10;
   ctx.font = `600 10px ${FONT_UI}`; ctx.textAlign = "right";
   for (const f of R.feed) {
@@ -265,8 +271,9 @@ function drawFeed(ctx, G, V, right, t) {
     ctx.globalAlpha = Math.min(1, f.life);
     const txt = (e.a ? e.a + "  " : "") + "[" + e.w + (e.crit ? " ✛" : "") + "]  " + e.v;
     const w = ctx.measureText(txt).width + 12;
-    hudPanel(ctx, right - w - (IS_TOUCH && V.x0 + V.w >= CW - 1 ? 34 : 0), y - 11, w, 15, 0.45);
-    let x = right - 6 - (IS_TOUCH && V.x0 + V.w >= CW - 1 ? 34 : 0);
+    const pad = !leftSide && IS_TOUCH && V.x0 + V.w >= CW - 1 ? 34 : 0;
+    hudPanel(ctx, right - w - pad, y - 11, w, 15, 0.45);
+    let x = right - 6 - pad;
     ctx.fillStyle = e.vt >= 0 ? TEAM_COL[e.vt] : "#fff"; ctx.fillText(e.v, x, y); x -= ctx.measureText(e.v).width;
     const mid = "  [" + e.w + (e.crit ? " ✛" : "") + "]  ";
     ctx.fillStyle = "rgba(241,236,224,.7)"; ctx.fillText(mid, x, y); x -= ctx.measureText(mid).width;

@@ -3,7 +3,7 @@
 // A new worker takes over as soon as it has cached the new files (the newest version is used from the next open).
 // The game also checks version.json (never cached) and shows an UPDATE banner so you can switch right away.
 // Saves live in localStorage and are never touched by any of this.
-const CACHE = "last-stand-806e36c23b";
+const CACHE = "last-stand-9f19b93bde";
 const ASSETS = [
   './',
   './manifest.webmanifest',

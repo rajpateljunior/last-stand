@@ -26,6 +26,7 @@ button { touch-action: manipulation; font-family: inherit; }
 .footer .desc { flex: 1; font-size: 12px; color: var(--mute); line-height: 1.35; }
 
 .btn { --c: #2b2f2a; position: relative; border: 0; padding: 0 22px; height: 48px; color: var(--bone); font: 400 20px/1 "Black Ops One", Impact, sans-serif; letter-spacing: 1px; cursor: pointer;
+  background: var(--c);
   background: linear-gradient(180deg, color-mix(in srgb, var(--c) 80%, #fff 8%), var(--c) 60%, color-mix(in srgb, var(--c) 75%, #000)); clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
   text-shadow: 1px 1px 0 rgba(0,0,0,.6); transition: transform .08s, filter .1s; }
 .btn:active { transform: scale(.96); filter: brightness(1.15); }
@@ -150,7 +151,10 @@ button { touch-action: manipulation; font-family: inherit; }
 
 /* ---------- portrait / small screens ---------- */
 @media (orientation: portrait) {
-  #scr-title { background: linear-gradient(180deg, rgba(4,5,4,.6) 0%, rgba(4,5,4,.85) 45%, rgba(4,5,4,.92) 100%); }
+  #scr-title { background: linear-gradient(180deg, rgba(4,5,4,.25) 0%, rgba(4,5,4,.7) 45%, rgba(4,5,4,.92) 100%); }
+  .logo { font-size: clamp(40px, 15vw, 86px); }
+  .logo small { letter-spacing: 2px; font-size: clamp(9px, 2.6vw, 13px); }
+  .emblem { width: clamp(64px, 22vw, 120px); }
   .title-wrap { align-items: flex-end; padding-bottom: 6vh; }
   .title-left { max-width: 100%; width: 100%; }
   .menu .btn.big { width: 100%; }
